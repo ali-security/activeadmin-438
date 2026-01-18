@@ -3,7 +3,7 @@ source "https://rubygems.org"
 eval_gemfile(File.expand_path("Gemfile.common", __dir__))
 
 group :release do
-  gem 'chandler', git: 'https://github.com/deivid-rodriguez/chandler', branch: 'submit_link_references' # Github releases from changelog
+  gem 'chandler', git: 'https://github.com/ali-security/chandler', branch: 'submit_link_references' # Github releases from changelog
 end
 
 group :lint do

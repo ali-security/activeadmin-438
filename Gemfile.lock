@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/deivid-rodriguez/chandler
+  remote: https://github.com/ali-security/chandler
   revision: 71ca85925b54a1b1e6ba785efa450a012364efe6
   branch: submit_link_references
   specs:
@@ -230,7 +230,6 @@ GEM
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2018.0812)
-    mimemagic (0.3.2)
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
