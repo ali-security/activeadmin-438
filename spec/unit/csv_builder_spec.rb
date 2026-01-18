@@ -310,4 +310,56 @@ RSpec.describe ActiveAdmin::CSVBuilder do
     it 'passes custom encoding options to String#encode!'
   end
 
+  context 'csv injection' do
+    let(:dummy_controller) do
+      class DummyControllerForInjection
+        def find_collection(*)
+          Post
+        end
+
+        def apply_decorator(resource)
+          resource
+        end
+
+        def view_context
+          MethodOrProcHelper
+        end
+      end
+      DummyControllerForInjection.new
+    end
+
+    let(:builder) do
+      ActiveAdmin::CSVBuilder.new do
+        column(:id)
+        column(:title)
+      end
+    end
+
+    ['=', '+', '-', '@', "\t", "\r"].each do |char|
+      it "prepends a single quote when column starts with a #{char} character" do
+        attack = "#{char}1+2"
+
+        escaped_attack = "'#{attack}"
+        escaped_attack = "\"#{escaped_attack}\"" if char == "\r"
+
+        post = Post.create!(title: attack)
+        receiver = []
+        builder.build dummy_controller, receiver
+        line = receiver.last
+        expect(line).to eq "#{post.id},#{escaped_attack}\n"
+      end
+
+      it "accounts for the field separator when character #{char} is used to inject a formula" do
+        attack = "#{char}1+2'\" ;,#{char}1+2"
+        escaped_attack = "\"'#{attack.gsub('"', '""')}\""
+
+        post = Post.create!(title: attack)
+        receiver = []
+        builder.build dummy_controller, receiver
+        line = receiver.last
+        expect(line).to eq "#{post.id},#{escaped_attack}\n"
+      end
+    end
+  end
+
 end

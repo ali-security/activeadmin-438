@@ -50,7 +50,7 @@ module ActiveAdmin
       csv << bom if bom
 
       if column_names
-        csv << CSV.generate_line(columns.map{ |c| encode c.name, options }, csv_options)
+        csv << CSV.generate_line(columns.map{ |c| sanitize(encode(c.name, options)) }, csv_options)
       end
 
       ActiveRecord::Base.uncached do
@@ -74,7 +74,7 @@ module ActiveAdmin
 
     def build_row(resource, columns, options)
       columns.map do |column|
-        encode call_method_or_proc_on(resource, column.data), options
+        sanitize(encode(call_method_or_proc_on(resource, column.data), options))
       end
     end
 
@@ -84,6 +84,10 @@ module ActiveAdmin
       else
         content
       end
+    end
+
+    def sanitize(content)
+      Sanitizer.sanitize(content)
     end
 
     def method_missing(method, *args, &block)
@@ -126,6 +130,23 @@ module ActiveAdmin
 
     def batch_size
       1000
+    end
+  end
+
+  # Prevents CSV Injection according to https://owasp.org/www-community/attacks/CSV_Injection
+  module Sanitizer
+    extend self
+
+    ATTACK_CHARACTERS = ['=', '+', '-', '@', "\t", "\r"].freeze
+
+    def sanitize(value)
+      return "'#{value}" if require_sanitization?(value)
+
+      value
+    end
+
+    def require_sanitization?(value)
+      value.is_a?(String) && value.starts_with?(*ATTACK_CHARACTERS)
     end
   end
 end
